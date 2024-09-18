@@ -16,24 +16,6 @@ const generate15MinIntervals = () => {
   return intervals;
 };
 
-// Helper function to find the closest data point
-const findClosestData = (data, targetDate) => {
-  let closest = data[0];
-  let closestDiff = Math.abs(new Date(data[0].date) - targetDate);
-
-  data.forEach((item) => {
-    const itemDate = new Date(item.date);
-    const diff = Math.abs(itemDate - targetDate);
-
-    if (diff < closestDiff) {
-      closest = item;
-      closestDiff = diff;
-    }
-  });
-
-  return closest;
-};
-
 const LineChartExample = () => {
   const [chartData, setChartData] = useState([]); // Ensure it's an array by default
   const [loading, setLoading] = useState(false); // State for loading indication
@@ -49,14 +31,31 @@ const LineChartExample = () => {
     const intervals = generate15MinIntervals();
 
     intervals.forEach((interval) => {
-      const closestData = findClosestData(data, interval); // Find closest data point
-      const timeLabel = interval.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const matchingData = data.find(
+        (item) => {
+          const itemDate = new Date(item.date);
+          return (
+            itemDate.getHours() === interval.getHours() &&
+            itemDate.getMinutes() === interval.getMinutes()
+          );
+        }
+      );
 
-      labels.push(timeLabel);
-      windspeedData.push(closestData ? closestData.windSpeedmsData : 0); // Use closest wind speed data
+      if (matchingData) {
+        const timeLabel = interval.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        labels.push(timeLabel);
+        windspeedData.push(matchingData.windSpeedmsData);
+      } else {
+        // Fill missing time points with 0
+        labels.push(interval.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }));
+        windspeedData.push(0); // Placeholder for missing wind speed data
+      }
     });
 
     console.log('Formatted Chart Data:', {
