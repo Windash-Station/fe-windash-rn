@@ -1,11 +1,13 @@
 
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
-import "react-native-url-polyfill/auto";
+// import "react-native-url-polyfill/auto";
 import { SplashScreen, Stack } from "expo-router";
+import { AppProvider } from "./AppContext";
 
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
+  
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
     "Poppins-ExtraBold": require("../assets/fonts/Poppins-ExtraBold.ttf"),
@@ -34,12 +36,13 @@ const RootLayout = () => {
   }
 
   return (
+        <AppProvider>
         <Stack>
           <Stack.Screen name="(dashboard)" options={{ headerShown: false }}/>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="guest-modal" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" options={{ headerShown: false }} />
         </Stack>
+        </AppProvider>
   );
 };
 
