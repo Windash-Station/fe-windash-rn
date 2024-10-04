@@ -5,7 +5,7 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const route = useRouter();
-  
+
   return (
     <AppContext.Provider value={{ route }}>
       {children}
