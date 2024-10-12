@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Text, View, ScrollView, StyleSheet, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, ActivityIndicator, Dimensions, TouchableOpacity, Image } from 'react-native';
 import axios from 'axios'; 
 import { ProgressChart } from 'react-native-chart-kit';
 import { useAppContext } from './AppContext';
-import { useRouter } from 'expo-router'; // For Expo Router navigation
+import { useRouter } from 'expo-router'; 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect } from 'expo-router'; // Use Expo Router's focus effect
+import { useFocusEffect } from 'expo-router'; 
 
 const { width } = Dimensions.get('window');
 
 export default function WeatherSensorApp() {
   const { route } = useAppContext();
-  const router = useRouter(); // Use Expo Router for navigation
+  const router = useRouter(); 
 
   const sensors = [
     { name: 'U1_analog', port: 3003, displayName: 'U1_analog' },
@@ -80,79 +80,89 @@ export default function WeatherSensorApp() {
       <View style={styles.chartContainer}>
         <ProgressChart
           data={{
-            labels: ['U1 Analog', 'M1', 'U2 RS485'],
+            labels: ['U1', 'M1', 'U2'],
             data: [windSpeedU1, windSpeedM1, windSpeedU2],
-            colors: ["red", "green", "blue"],
+            colors: ["red", "cyan", "blue"],
           }}
-          width={width * 1}
+          width={width * 1.1}
           height={300}
-          strokeWidth={25}
-          radius={50}
+          strokeWidth={30}
+          radius={30}
           chartConfig={{
             decimalPlaces: 2,
             backgroundGradientToOpacity: 0,
             backgroundGradientFromOpacity: 0,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           }}
-          hideLegend={true}
+          hideLegend={false}
+          withCustomBarColorFromData={true}
         />
       </View>
     );
   };
 
   return (
-    <LinearGradient colors={['#ff7e8f', '#feb47d']} style={styles.container}>
+    <LinearGradient colors={['white', 'white']} style={styles.container}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Windash Station</Text>
+          <Text style={styles.title}>WINDASH STATION</Text>
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {/* {error && <Text style={styles.errorText}>{error}</Text>} */}
 
         {loading ? (
           <ActivityIndicator size="large" color="#4CAF50" />
         ) : (
           <>
             {renderProgressChart()}
-            {sensors.map((sensor) => (
-              <TouchableOpacity
-                key={sensor.port}
-                style={styles.sensorContainer}
-                onPress={() => router.push(`/(dashboard)/${sensor.name}`)}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Icon name="square" size={15} color={'red'} />
-                  <Text style={[styles.sensorTitle, { marginLeft: 8 }]}>
-                    {sensor.displayName}
-                  </Text>
-                </View>
+            {Object.keys(sensorData).map((sensorName) => (
+  <TouchableOpacity
+    key={sensorName}
+    style={styles.sensorContainer}
+    onPress={() =>
+      router.push({
+        pathname: `/(dashboard)/${sensorName}`, // Navigate to the respective sensor page
+        params: {
+          sensorBoxData: sensorData[sensorName], // Pass the specific sensor data
+        },
+      })
+    }
+  >
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      {/* <Icon name="square" size={15} color={'red'}/> */}
+      <Image source={require('../assets/111142_radar_signal_icon.png')}/>
+      <Text style={[styles.sensorTitle, { marginLeft: 8 }]}>
+        {sensorName}
+      </Text>
+    </View>
 
-                {sensorData[sensor.name] ? (
-                  <View style={styles.dataRow}>
-                    <View style={styles.dataBox}>
-                      <Text style={styles.dataValue}>
-                        {sensorData[sensor.name].windSpeedmsData || 'N/A'}
-                      </Text>
-                      <Text style={styles.dataLabel}>Wind Speed (m/s)</Text>
-                    </View>
-                    <View style={styles.dataBox}>
-                      <Text style={styles.dataValue}>
-                        {sensorData[sensor.name].totalSpeedData || 'N/A'}
-                      </Text>
-                      <Text style={styles.dataLabel}>Total Speed</Text>
-                    </View>
-                    <View style={styles.dataBox}>
-                      <Text style={styles.dataValue}>
-                        {sensorData[sensor.name].batteryVoltageData || 'N/A'}
-                      </Text>
-                      <Text style={styles.dataLabel}>Battery Voltage</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <Text style={styles.loadingText}>Loading data...</Text>
-                )}
-              </TouchableOpacity>
-            ))}
+    {sensorData[sensorName] ? (
+      <View style={styles.dataRow}>
+        <View style={styles.dataBox}>
+          <Text style={styles.dataValue}>
+            {sensorData[sensorName].windSpeedmsData || 'N/A'}
+          </Text>
+          <Text style={styles.dataLabel}>Wind Speed (m/s)</Text>
+        </View>
+        <View style={styles.dataBox}>
+          <Text style={styles.dataValue}>
+            {sensorData[sensorName].totalSpeedData || 'N/A'}
+          </Text>
+          <Text style={styles.dataLabel}>Total Speed</Text>
+        </View>
+        <View style={styles.dataBox}>
+          <Text style={styles.voltageDataValue}>
+            {sensorData[sensorName].batteryVoltageData || 'N/A'}
+          </Text>
+          <Text style={styles.dataLabel}>Battery Voltage</Text>
+        </View>
+      </View>
+    ) : (
+      <Text style={styles.loadingText}>Sensor data unavailable....</Text>
+    )}
+  </TouchableOpacity>
+))}
+
           </>
         )}
       </ScrollView>
@@ -176,12 +186,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'black',
-    fontFamily: 'monospace',
+    fontFamily: 'arial',
   },
   sensorContainer: {
     marginBottom: 20,
     borderRadius: 8,
-    backgroundColor: '#1f1f1f',
+    backgroundColor: '#FAF9F6',
     padding: 15,
     elevation: 2,
   },
@@ -189,7 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     fontStyle: 'italic',
-    color: 'pink',
+    color: 'blue',
   },
   dataRow: {
     flexDirection: 'row',
@@ -202,7 +212,12 @@ const styles = StyleSheet.create({
   dataValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#000000',
+  },
+  voltageDataValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'red'
   },
   dataLabel: {
     fontSize: 12,
